@@ -1,0 +1,191 @@
+---
+title: "Economist Viz3"
+author: "Cristina Martinez"
+date: "2022-08-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+
+## Clear R environment: 
+rm(list = ls())
+
+
+# Load data: 
+library(tidyverse)
+library(ggrepel)
+library(showtext) # Package for using extra fonts. 
+library(patchwork)  
+library(grid)
+
+```
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+
+## Downloading the data
+
+read_csv("http://infographics.economist.com/databank/Economist_pensions.csv") -> pensions_data
+
+# Rename for all columns: 
+
+names(pensions_data) <- c("country", "pop_over65", "gov_spending")
+
+# Remove mising: 
+
+pensions_data %>% filter(!is.na(gov_spending)) -> pensions_data
+
+# The Economist colors: 
+
+red_icon <- "#ed1c24"
+
+bgr_color_te <- "#d9e9f0"
+
+blue_te <- "#2dc0d2"
+
+some_countries <- c("Brazil", "Turkey", "Mexico", "Poland", "South Kore", "Italy", 
+                    "United States", "France", "OECD average", "Japan", "Greece")
+
+# Extract OECD countries from web: 
+
+"https://en.wikipedia.org/wiki/OECD" %>% 
+  rvest::read_html() %>% 
+  rvest::html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/div[3]') %>% 
+  rvest::html_text() %>% 
+  str_split("\n", simplify = TRUE) %>% 
+  as.vector() %>% 
+  .[-1] -> oecd_countries
+
+# Averages for OECD countries: 
+
+pensions_data %>% 
+  filter(country %in% oecd_countries) %>% 
+  mutate(country = "OECD average") %>% 
+  group_by(country) %>% 
+  summarise(pop_over65 = mean(pop_over65), 
+            gov_spending = mean(gov_spending)) -> data_oecd
+
+# Joint the two data sets: 
+
+bind_rows(pensions_data, data_oecd) -> data_for_ploting
+
+data_for_ploting %>% 
+  mutate(text_face = case_when(country == "Brazil" ~ "bold", 
+                               country == "OECD average" ~ "italic", 
+                               TRUE ~ "plain")) -> data_for_ploting
+
+data_for_ploting %>% filter(country %in% some_countries) -> df1
+
+data_for_ploting %>% filter(!country %in% some_countries) -> df2
+
+
+## Formatting 
+
+p_title <- "Brazil's golden oldie blowout"
+
+p_subtitle <- "Latest available"
+
+p_caption <- "Source: OECD; World Bank; Previdência Social | Graphic Designer: Nguyen Chi Dung"
+
+left_text <- "Government spending\non pension benefits\n% of GDP"
+
+my_font <- "Roboto" 
+
+# Load font for ploting: 
+
+font_add_google(name = my_font, family = my_font) 
+
+font_y <- "Roboto Condensed" 
+
+font_add_google(name = font_y, family = font_y)
+
+showtext_auto() # Automatically render text. 
+
+
+## plotting the data
+ggplot() + 
+  geom_point(data = df1, aes(pop_over65, gov_spending), size = 6, shape = 21, fill = blue_te, stroke = 0, color = "grey30") + 
+  geom_point(data = df2, aes(pop_over65, gov_spending), size = 6, color = blue_te, alpha = 0.4) + 
+  geom_text_repel(data = df1 %>% filter(!country %in% c("France", "Greece", "Italy", "Japan", "United States", 
+                                                        "OECD average", "Poland", "Brazil", "Mexico")), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "y", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_y = 0.9) + 
+  geom_text_repel(data = df1 %>% filter(country == "France"), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "y", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_y = 0.9) + 
+  geom_text_repel(data = df1 %>% filter(country == "Greece"), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "x", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_x = 1.4) + 
+  geom_text_repel(data = df1 %>% filter(country == "Italy"), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "y", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_y = 0.9) + 
+  geom_text_repel(data = df1 %>% filter(country == "Japan"), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "y", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_y = -0.8) + 
+  geom_text_repel(data = df1 %>% filter(country == "United States"), 
+                  aes(pop_over65, gov_spending, label = country), force = 4, direction = "x", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_x = -2.4) + 
+  geom_text_repel(data = df1 %>% filter(country == "OECD average"), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "x", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_x = -2.4, fontface = "italic") + 
+  geom_text_repel(data = df1 %>% filter(country == "Poland"), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "x", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_x = -1.4) + 
+  geom_text_repel(data = df1 %>% filter(country == "Brazil"), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "y", seed = 12, 
+                  family = my_font, size = 4.5, nudge_y = 1, fontface = "bold") + 
+  geom_text_repel(data = df1 %>% filter(country == "Mexico"), 
+                  aes(pop_over65, gov_spending, label = country), force = 1, direction = "y", seed = 12, 
+                  family = my_font, size = 4.5, color = "grey20", nudge_y = 0.9) + 
+
+### Formatting
+  
+  theme(plot.background = element_rect(fill = bgr_color_te, color = NA)) + 
+  theme(panel.background = element_rect(fill = bgr_color_te, color = NA)) + 
+  labs(subtitle = left_text, x = "Population aged 65 years and over, % of total") + 
+  scale_x_continuous(limits = c(5, 30.5), breaks = seq(5, 30, 5), expand = c(0, 0)) + 
+  scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, 5), expand = c(0, 0), position = "right") +  
+  theme(axis.title.y.right = element_blank()) + 
+  theme(panel.grid.minor = element_blank()) + 
+  theme(panel.grid.major = element_line(color = "#bdc3cb", size = 0.7)) + 
+  theme(axis.ticks = element_blank()) + 
+  theme(plot.subtitle = element_text(family = font_y, color = "grey10", size = 12, hjust = 1.035, vjust = 3)) + 
+  theme(axis.text = element_text(family = font_y, color = "grey20", size = 14)) + 
+  theme(axis.title = element_text(family = font_y, color = "grey20", size = 12)) + 
+  theme(axis.line.x = element_line(color = "grey50", size = 1)) -> p 
+
+
+p + 
+  plot_annotation(title = p_title, subtitle = p_subtitle, caption = p_caption) + 
+  plot_annotation(theme = theme(plot.background = element_rect(fill = bgr_color_te))) + 
+  plot_annotation(theme = theme(plot.title = element_text(family = font_y, size = 18, face = "bold", vjust = -2))) + 
+  plot_annotation(theme = theme(plot.subtitle = element_text(family = font_y, size = 13.5, color = "grey10", vjust = -2))) + 
+  plot_annotation(theme = theme(plot.caption = element_text(family = font_y, color = "grey40", size = 12, hjust = 0))) + 
+  theme(plot.margin = unit(c(0.5, 0.5, 0.1, 0.7), "cm")) 
+
+# Make The Economist icon: 
+
+
+grid.rect(x = 0.045, y = 1, width = 0.05*1.5, height = 0.02, just = c("left", "top"), gp = gpar(fill = red_icon, col = red_icon))
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

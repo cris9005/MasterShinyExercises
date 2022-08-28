@@ -1,0 +1,130 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(ggrepel) 
+library(ggplot2) #Main package for graph
+library(ggthemes)#Themes for formating
+```
+
+
+```{r}
+library(extrafont)#Adding more font format (this package is optional because it will took sometimes for install all the font)
+
+library(grid) #Add grid line
+library(cowplot) #Add annotation
+```
+
+
+```{r}
+library(readr)
+```
+
+
+```{r}
+# NOT RUN {
+library("ggplot2")
+
+p <- ggplot(mtcars) + geom_point(aes(x = wt, y = mpg,
+     colour = factor(gear))) +
+     facet_wrap(~am) +
+     # Economist puts scales on the right-hand side
+     scale_y_continuous(position = "right")
+
+## Standard
+p + theme_economist() + scale_colour_economist()
+
+## Stata colors
+p + theme_economist(stata = TRUE) + scale_colour_economist(stata = TRUE)
+
+## Darker plot region
+p + theme_economist(dkpanel = TRUE) + scale_colour_economist(stata = TRUE)
+
+# Change axis lines to vertical
+p + theme_economist(horizontal = FALSE) +
+    scale_colour_economist() +
+    coord_flip()
+
+## White panel/light gray background
+p + theme_economist_white() +
+    scale_colour_economist()
+
+## All white variant
+p + theme_economist_white(gray_bg = FALSE) +
+    scale_colour_economist()
+
+# }
+# NOT RUN {
+## The Economist uses ITC Officina Sans
+library(extrafont)
+p + theme_economist(base_family="ITC Officina Sans") +
+    scale_colour_economist()
+
+## Verdana is a widely available substitute
+p + theme_economist(base_family="Verdana") +
+    scale_colour_economist()
+
+# }
+
+```
+
+
+```{r}
+library("ggplot2")
+
+p <- ggplot(mtcars) +
+     geom_point(aes(x = wt, y = mpg, colour = factor(gear))) +
+     facet_wrap(~am) +
+     # Economist puts x-axis labels on the right-hand side
+     scale_y_continuous(position = "right")
+
+## Standard
+p + theme_economist() +
+  scale_colour_economist()
+
+# Change axis lines to vertical
+p + theme_economist(horizontal = FALSE) +
+    scale_colour_economist() +
+    coord_flip()
+
+## White panel/light gray background
+p + theme_economist_white() +
+    scale_colour_economist()
+
+## All white variant
+p + theme_economist_white(gray_bg = FALSE) +
+    scale_colour_economist()
+
+## Not run: 
+
+## The Economist uses ITC Officina Sans
+library("extrafont")
+p + theme_economist(base_family="ITC Officina Sans") +
+    scale_colour_economist()
+
+## Verdana is a widely available substitute
+p + theme_economist(base_family="Verdana") +
+    scale_colour_economist()
+
+
+## End(Not run)
+```
+
+
+
+
+
+♦```{r}
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
